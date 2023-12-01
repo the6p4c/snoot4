@@ -1,0 +1,16 @@
+[project]
+name = "snoot4"
+version = "0.0.1"
+description = "open-source SH4 core"
+authors = [{ name = "the6p4c", email = "me@doggirl.gay" }]
+readme = "README.md"
+license = { text = "MIT" }
+
+requires-python = ">=3.11"
+dependencies = [
+    "amaranth[builtin-yosys] @ git+https://github.com/amaranth-lang/amaranth.git@main",
+    "amaranth-boards @ git+https://github.com/amaranth-lang/amaranth-boards.git@main",
+]
+
+[tool.pdm.dev-dependencies]
+dev = ["black<24.0.0,>=23.11.0"]
