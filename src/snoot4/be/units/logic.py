@@ -47,33 +47,44 @@ class Logic(Component):
         sel_is_byte = sel[0] == 0
         sel_is_unsigned = sel[1] == 0
 
+        # === bitwise ===
         result_not = Signal(32)
         result_and = Signal(32)
         result_xor = Signal(32)
         result_or = Signal(32)
-        result_bitwise = Signal(32)
         m.d.comb += [
             result_not.eq(~op1),
             result_and.eq(op1 & op2),
             result_xor.eq(op1 ^ op2),
             result_or.eq(op1 | op2),
-            result_bitwise.eq(
-                Array([result_not, result_and, result_xor, result_or])[sel[0:2]]
-            ),
         ]
 
+        result_bitwise = Signal(32)
+        with m.Switch(sel[0:2]):
+            with m.Case(0):
+                m.d.comb += result_bitwise.eq(result_not)
+            with m.Case(1):
+                m.d.comb += result_bitwise.eq(result_and)
+            with m.Case(2):
+                m.d.comb += result_bitwise.eq(result_xor)
+            with m.Case(3):
+                m.d.comb += result_bitwise.eq(result_or)
+
+        # === extract ===
         result_extract = Signal(32)
         m.d.comb += result_extract.eq(Cat(op2_b23, op1_b01))
 
+        # === swap ===
+        result_swapb = Signal(32)
+        result_swapw = Signal(32)
         result_swap = Signal(32)
-        m.d.comb += result_swap.eq(
-            Mux(
-                sel_is_byte,
-                Cat(op1_b1, op1_b0, op1_b2, op1_b3),
-                Cat(op1_b23, op1_b01),
-            )
-        )
+        m.d.comb += [
+            result_swapb.eq(Cat(op1_b1, op1_b0, op1_b2, op1_b3)),
+            result_swapw.eq(Cat(op1_b23, op1_b01)),
+            result_swap.eq(Mux(sel_is_byte, result_swapb, result_swapw)),
+        ]
 
+        # === extend ===
         result_extb = Signal(32)
         result_extw = Signal(32)
         result_extend = Signal(32)
@@ -87,6 +98,7 @@ class Logic(Component):
             result_extend.eq(Mux(sel_is_byte, result_extb, result_extw)),
         ]
 
+        # === result ===
         with m.Switch(self.sel[2:4]):
             with m.Case(0):
                 m.d.comb += self.result.eq(result_bitwise)
