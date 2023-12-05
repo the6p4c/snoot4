@@ -4,16 +4,19 @@ from amaranth.lib.wiring import Component, In, Out
 
 
 class LogicSel(enum.Enum):
-    # bitwise: 0b00xx
+    # bitwise: 0b00ii
+    #  ii: index [NOT, AND, XOR, OR]
     NOT = 0b0000
     AND = 0b0001
     XOR = 0b0010
     OR = 0b0011
 
-    # extract: 0b0100
+    # extract: 0b01xx
+    #  x: don't care
     XTRCT = 0b0100
 
-    # swap: 0b100w
+    # swap: 0b10xw
+    #  x: don't care
     #  ~b/w = ~byte/word
     SWAPB = 0b1000
     SWAPW = 0b1001
@@ -36,6 +39,8 @@ class Logic(Component):
 
     def elaborate(self, platform):
         m = Module()
+
+        # === split operands into byte and word chunks ===
         op1 = self.op1
         op1_b0, op1_b1, op1_b2, op1_b3 = op1[0:8], op1[8:16], op1[16:24], op1[24:32]
         op1_b01, op1_b23 = op1[0:16], op1[16:32]
@@ -43,70 +48,59 @@ class Logic(Component):
         op2 = self.op2
         op2_b23 = op2[16:32]
 
+        # === partially decode selector ===
         sel = self.sel
-        sel_is_byte = sel[0] == 0
-        sel_is_unsigned = sel[1] == 0
+        sel_byte = sel[0] == 0
+        sel_unsigned = sel[1] == 0
 
         # === bitwise ===
-        result_not = Signal(32)
-        result_and = Signal(32)
-        result_xor = Signal(32)
-        result_or = Signal(32)
+        r_not = Signal(32)
+        r_and = Signal(32)
+        r_xor = Signal(32)
+        r_or = Signal(32)
+        r_bitwise = Signal(32)
         m.d.comb += [
-            result_not.eq(~op1),
-            result_and.eq(op1 & op2),
-            result_xor.eq(op1 ^ op2),
-            result_or.eq(op1 | op2),
+            r_not.eq(~op1),
+            r_and.eq(op1 & op2),
+            r_xor.eq(op1 ^ op2),
+            r_or.eq(op1 | op2),
+            r_bitwise.eq(Lut(sel[0:2], [r_not, r_and, r_xor, r_or])),
         ]
 
-        result_bitwise = Signal(32)
-        with m.Switch(sel[0:2]):
-            with m.Case(0):
-                m.d.comb += result_bitwise.eq(result_not)
-            with m.Case(1):
-                m.d.comb += result_bitwise.eq(result_and)
-            with m.Case(2):
-                m.d.comb += result_bitwise.eq(result_xor)
-            with m.Case(3):
-                m.d.comb += result_bitwise.eq(result_or)
-
         # === extract ===
-        result_extract = Signal(32)
-        m.d.comb += result_extract.eq(Cat(op2_b23, op1_b01))
+        r_extract = Signal(32)
+        m.d.comb += r_extract.eq(Cat(op2_b23, op1_b01))
 
         # === swap ===
-        result_swapb = Signal(32)
-        result_swapw = Signal(32)
-        result_swap = Signal(32)
+        r_swapb = Signal(32)
+        r_swapw = Signal(32)
+        r_swap = Signal(32)
         m.d.comb += [
-            result_swapb.eq(Cat(op1_b1, op1_b0, op1_b2, op1_b3)),
-            result_swapw.eq(Cat(op1_b23, op1_b01)),
-            result_swap.eq(Mux(sel_is_byte, result_swapb, result_swapw)),
+            r_swapb.eq(Cat(op1_b1, op1_b0, op1_b2, op1_b3)),
+            r_swapw.eq(Cat(op1_b23, op1_b01)),
+            r_swap.eq(Mux(sel_byte, r_swapb, r_swapw)),
         ]
 
         # === extend ===
-        result_extb = Signal(32)
-        result_extw = Signal(32)
-        result_extend = Signal(32)
+        r_extb = Signal(32)
+        r_extw = Signal(32)
+        r_extend = Signal(32)
         m.d.comb += [
-            result_extb.eq(
-                Cat(op1_b0, Mux(sel_is_unsigned, 0, op1_b0[-1]).replicate(24))
-            ),
-            result_extw.eq(
-                Cat(op1_b01, Mux(sel_is_unsigned, 0, op1_b01[-1]).replicate(16))
-            ),
-            result_extend.eq(Mux(sel_is_byte, result_extb, result_extw)),
+            r_extb.eq(Cat(op1_b0, Mux(sel_unsigned, 0, op1_b0[-1]).replicate(24))),
+            r_extw.eq(Cat(op1_b01, Mux(sel_unsigned, 0, op1_b01[-1]).replicate(16))),
+            r_extend.eq(Mux(sel_byte, r_extb, r_extw)),
         ]
 
         # === result ===
-        with m.Switch(self.sel[2:4]):
-            with m.Case(0):
-                m.d.comb += self.result.eq(result_bitwise)
-            with m.Case(1):
-                m.d.comb += self.result.eq(result_extract)
-            with m.Case(2):
-                m.d.comb += self.result.eq(result_swap)
-            with m.Case(3):
-                m.d.comb += self.result.eq(result_extend)
+        m.d.comb += self.result.eq(
+            Lut(sel[2:4], [r_bitwise, r_extract, r_swap, r_extend])
+        )
 
         return m
+
+
+def Lut(sel, values):
+    assert not sel.shape().signed
+    assert 2 ** sel.shape().width == len(values)
+
+    return Array(values)[sel]
