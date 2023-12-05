@@ -13,4 +13,7 @@ dependencies = [
 ]
 
 [tool.pdm.dev-dependencies]
-dev = ["black<24.0.0,>=23.11.0"]
+dev = ["black<24.0.0,>=23.11.0", "pytest>=7.4.3"]
+
+[tool.pdm.scripts]
+test = "pytest"
