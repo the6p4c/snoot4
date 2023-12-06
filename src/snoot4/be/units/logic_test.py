@@ -1,47 +1,16 @@
-from amaranth import Module, Mux
+from amaranth import Mux
 from amaranth.hdl.dsl import Assert, Assume
-from amaranth.lib.wiring import Component, In
 import pytest
 
 from snoot4.be.units.logic import Logic, LogicSel
-from snoot4.tests.utils import assertFormal
+from snoot4.tests.utils import Spec, assertFormal
 
 
-specs = []
+LogicSpec = Spec(Logic)
 
 
-def spec(cls):
-    specs.append(cls)
-    return cls
-
-
-class LogicSpec(Component):
-    sel: In(LogicSel)
-
-    op1: In(32)  # Rm
-    op2: In(32)  # Rn
-
-    def elaborate(self, platform):
-        m = Module()
-
-        m.submodules.gate = gate = Logic()
-        m.d.comb += [
-            gate.sel.eq(self.sel),
-            gate.op1.eq(self.op1),
-            gate.op2.eq(self.op2),
-        ]
-
-        self.test(m, gate)
-
-        return m
-
-    def test(self, m, gate):
-        raise NotImplementedError("test method must be implemented in subclass")
-
-
-@spec
 class NotSpec(LogicSpec):
-    def test(self, m, gate):
+    def spec(self, m, gate):
         Rm, Rn = gate.op1, gate.op2
         gold_result = ~Rm
 
@@ -51,9 +20,8 @@ class NotSpec(LogicSpec):
         ]
 
 
-@spec
 class AndSpec(LogicSpec):
-    def test(self, m, gate):
+    def spec(self, m, gate):
         Rm, Rn = gate.op1, gate.op2
         gold_result = Rn & Rm
 
@@ -63,9 +31,8 @@ class AndSpec(LogicSpec):
         ]
 
 
-@spec
 class XorSpec(LogicSpec):
-    def test(self, m, gate):
+    def spec(self, m, gate):
         Rm, Rn = gate.op1, gate.op2
         gold_result = Rn ^ Rm
 
@@ -75,9 +42,8 @@ class XorSpec(LogicSpec):
         ]
 
 
-@spec
 class OrSpec(LogicSpec):
-    def test(self, m, gate):
+    def spec(self, m, gate):
         Rm, Rn = gate.op1, gate.op2
         gold_result = Rn | Rm
 
@@ -87,9 +53,8 @@ class OrSpec(LogicSpec):
         ]
 
 
-@spec
 class XtrctSpec(LogicSpec):
-    def test(self, m, gate):
+    def spec(self, m, gate):
         Rm, Rn = gate.op1, gate.op2
         gold_result = ((Rm << 16) & 0xFFFF0000) | ((Rn >> 16) & 0x0000FFFF)
 
@@ -99,9 +64,8 @@ class XtrctSpec(LogicSpec):
         ]
 
 
-@spec
 class SwapbSpec(LogicSpec):
-    def test(self, m, gate):
+    def spec(self, m, gate):
         Rm, Rn = gate.op1, gate.op2
         gold_result = (
             ((Rm & 0x0000FF00) >> 8) | ((Rm & 0x000000FF) << 8) | (Rm & 0xFFFF0000)
@@ -113,9 +77,8 @@ class SwapbSpec(LogicSpec):
         ]
 
 
-@spec
 class SwapwSpec(LogicSpec):
-    def test(self, m, gate):
+    def spec(self, m, gate):
         Rm, Rn = gate.op1, gate.op2
         gold_result = ((Rm << 16) & 0xFFFF0000) | ((Rm >> 16) & 0x0000FFFF)
 
@@ -125,9 +88,8 @@ class SwapwSpec(LogicSpec):
         ]
 
 
-@spec
 class ExtubSpec(LogicSpec):
-    def test(self, m, gate):
+    def spec(self, m, gate):
         Rm, Rn = gate.op1, gate.op2
         gold_result = Rm & 0x000000FF
 
@@ -137,9 +99,8 @@ class ExtubSpec(LogicSpec):
         ]
 
 
-@spec
 class ExtuwSpec(LogicSpec):
-    def test(self, m, gate):
+    def spec(self, m, gate):
         Rm, Rn = gate.op1, gate.op2
         gold_result = Rm & 0x0000FFFF
 
@@ -149,9 +110,8 @@ class ExtuwSpec(LogicSpec):
         ]
 
 
-@spec
 class ExtsbSpec(LogicSpec):
-    def test(self, m, gate):
+    def spec(self, m, gate):
         Rm, Rn = gate.op1, gate.op2
         gold_result = Mux((Rm & 0x00000080) == 0, Rm & 0x000000FF, Rm | 0xFFFFFF00)
 
@@ -161,9 +121,8 @@ class ExtsbSpec(LogicSpec):
         ]
 
 
-@spec
 class ExtswSpec(LogicSpec):
-    def test(self, m, gate):
+    def spec(self, m, gate):
         Rm, Rn = gate.op1, gate.op2
         gold_result = Mux((Rm & 0x00008000) == 0, Rm & 0x0000FFFF, Rm | 0xFFFF0000)
 
@@ -173,8 +132,6 @@ class ExtswSpec(LogicSpec):
         ]
 
 
-@pytest.mark.parametrize("spec", specs)
+@pytest.mark.parametrize("spec", LogicSpec.specs)
 def test_logic(spec, tmp_path):
-    uut = spec()
-
-    assertFormal(uut, tmp_path)
+    assertFormal(spec(), tmp_path)

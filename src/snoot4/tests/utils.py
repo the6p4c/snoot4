@@ -2,9 +2,36 @@ import pytest
 import subprocess
 import textwrap
 
-from amaranth import Fragment
+from amaranth import Elaboratable, Fragment, Module
 from amaranth._toolchain import require_tool
 from amaranth.back import rtlil
+from amaranth.lib.wiring import Component, Out, connect, flipped
+
+
+def Spec(gate_cls):
+    class Spec(Component):
+        ports: Out(gate_cls().signature)
+        specs = []
+
+        def __init_subclass__(cls, **kwargs):
+            super().__init_subclass__(**kwargs)
+
+            Spec.specs.append(cls)
+
+        def elaborate(self, platform):
+            m = Module()
+
+            m.submodules.gate = gate = gate_cls()
+            connect(m, flipped(self.ports), gate)
+
+            self.spec(m, gate)
+
+            return m
+
+        def spec(self, m, gate):
+            raise NotImplementedError("spec method must be implemented in subclass")
+
+    return Spec
 
 
 def assertFormal(uut, tmp_path):
