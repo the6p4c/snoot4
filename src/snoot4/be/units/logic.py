@@ -39,8 +39,8 @@ class Logic(Component):
     sel: In(LogicSel)
     flags_sel: In(LogicFlagsSel)
 
-    op1: In(32)  # Rm
-    op2: In(32)  # Rn
+    op1: In(32)  # Rn
+    op2: In(32)  # Rm
     result: Out(32)  # Rn
 
     to: Out(1)
@@ -50,11 +50,11 @@ class Logic(Component):
 
         # === split operands into byte and word chunks ===
         op1 = self.op1
-        op1_b0, op1_b1, op1_b2, op1_b3 = op1[0:8], op1[8:16], op1[16:24], op1[24:32]
-        op1_b01, op1_b23 = op1[0:16], op1[16:32]
+        op1_b23 = op1[16:32]
 
         op2 = self.op2
-        op2_b23 = op2[16:32]
+        op2_b0, op2_b1, op2_b2, op2_b3 = op2[0:8], op2[8:16], op2[16:24], op2[24:32]
+        op2_b01, op2_b23 = op2[0:16], op2[16:32]
 
         # === partially decode selector ===
         sel = self.sel
@@ -68,7 +68,7 @@ class Logic(Component):
         r_or = Signal(32)
         r_bitwise = Signal(32)
         m.d.comb += [
-            r_not.eq(~op1),
+            r_not.eq(~op2),
             r_and.eq(op1 & op2),
             r_xor.eq(op1 ^ op2),
             r_or.eq(op1 | op2),
@@ -77,15 +77,15 @@ class Logic(Component):
 
         # === extract ===
         r_extract = Signal(32)
-        m.d.comb += r_extract.eq(Cat(op2_b23, op1_b01))
+        m.d.comb += r_extract.eq(Cat(op1_b23, op2_b01))
 
         # === swap ===
         r_swapb = Signal(32)
         r_swapw = Signal(32)
         r_swap = Signal(32)
         m.d.comb += [
-            r_swapb.eq(Cat(op1_b1, op1_b0, op1_b2, op1_b3)),
-            r_swapw.eq(Cat(op1_b23, op1_b01)),
+            r_swapb.eq(Cat(op2_b1, op2_b0, op2_b2, op2_b3)),
+            r_swapw.eq(Cat(op2_b23, op2_b01)),
             r_swap.eq(Mux(sel_byte, r_swapb, r_swapw)),
         ]
 
@@ -94,8 +94,8 @@ class Logic(Component):
         r_extw = Signal(32)
         r_extend = Signal(32)
         m.d.comb += [
-            r_extb.eq(Cat(op1_b0, Mux(sel_unsigned, 0, op1_b0[-1]).replicate(24))),
-            r_extw.eq(Cat(op1_b01, Mux(sel_unsigned, 0, op1_b01[-1]).replicate(16))),
+            r_extb.eq(Cat(op2_b0, Mux(sel_unsigned, 0, op2_b0[-1]).replicate(24))),
+            r_extw.eq(Cat(op2_b01, Mux(sel_unsigned, 0, op2_b01[-1]).replicate(16))),
             r_extend.eq(Mux(sel_byte, r_extb, r_extw)),
         ]
 

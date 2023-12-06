@@ -38,8 +38,8 @@ class Arith(Component):
     sel: In(ArithSel)
     flags_sel: In(ArithFlagsSel)
 
-    op1: In(32)  # Rm
-    op2: In(32)  # Rn
+    op1: In(32)  # Rn
+    op2: In(32)  # Rm
     result: Out(32)  # Rn
 
     ti: In(1)
@@ -61,8 +61,8 @@ class Arith(Component):
         add2 = Signal(32)
         carry = Signal()
         m.d.comb += [
-            add1.eq(Mux(sel_inv, ~self.op1, self.op1)),
-            add2.eq(self.op2),
+            add1.eq(self.op1),
+            add2.eq(Mux(sel_inv, ~self.op2, self.op2)),
             carry.eq(sel_inv ^ (sel_carry & self.ti)),
         ]
 

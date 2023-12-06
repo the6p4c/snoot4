@@ -10,7 +10,7 @@ ArithSpec = Spec(Arith)
 
 class AddSpec(ArithSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = (Rn + Rm) & 0xFFFFFFFF
 
         m.d.comb += [
@@ -21,7 +21,7 @@ class AddSpec(ArithSpec):
 
 class AddcSpec(ArithSpec):
     def spec(self, m, gate):
-        Rm, Rn, T = gate.op1, gate.op2, gate.ti
+        Rn, Rm, T = gate.op1, gate.op2, gate.ti
         gold_result = (Rn + Rm + T) & 0xFFFFFFFF
 
         # based on software manual: checks if either addition would overflow
@@ -39,7 +39,7 @@ class AddcSpec(ArithSpec):
 
 class AddvSpec(ArithSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = (Rn + Rm) & 0xFFFFFFFF
 
         # based on software manual: check for signs that don't make sense
@@ -57,7 +57,7 @@ class AddvSpec(ArithSpec):
 
 class SubSpec(ArithSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = (Rn - Rm) & 0xFFFFFFFF
 
         m.d.comb += [
@@ -68,7 +68,7 @@ class SubSpec(ArithSpec):
 
 class SubcSpec(ArithSpec):
     def spec(self, m, gate):
-        Rm, Rn, T = gate.op1, gate.op2, gate.ti
+        Rn, Rm, T = gate.op1, gate.op2, gate.ti
         gold_result = (Rn - Rm - T) & 0xFFFFFFFF
 
         # based on software manual: checks if either subtraction would overflow
@@ -86,7 +86,7 @@ class SubcSpec(ArithSpec):
 
 class SubvSpec(ArithSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = (Rn - Rm) & 0xFFFFFFFF
 
         # based on software manual: check for signs that don't make sense
@@ -104,7 +104,7 @@ class SubvSpec(ArithSpec):
 
 class CmpEqSpec(ArithSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_to = Rn == Rm
 
         m.d.comb += [
@@ -116,7 +116,7 @@ class CmpEqSpec(ArithSpec):
 
 class CmpHsSpec(ArithSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_to = Rn >= Rm
 
         m.d.comb += [
@@ -128,7 +128,7 @@ class CmpHsSpec(ArithSpec):
 
 class CmpGeSpec(ArithSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_to = Rn.as_signed() >= Rm.as_signed()
 
         m.d.comb += [
@@ -140,7 +140,7 @@ class CmpGeSpec(ArithSpec):
 
 class CmpHiSpec(ArithSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_to = Rn > Rm
 
         m.d.comb += [
@@ -152,7 +152,7 @@ class CmpHiSpec(ArithSpec):
 
 class CmpGtSpec(ArithSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_to = Rn.as_signed() > Rm.as_signed()
 
         m.d.comb += [

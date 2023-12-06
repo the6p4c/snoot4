@@ -11,7 +11,7 @@ LogicSpec = Spec(Logic)
 
 class NotSpec(LogicSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = ~Rm
 
         m.d.comb += [
@@ -22,7 +22,7 @@ class NotSpec(LogicSpec):
 
 class AndSpec(LogicSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = Rn & Rm
 
         m.d.comb += [
@@ -33,7 +33,7 @@ class AndSpec(LogicSpec):
 
 class XorSpec(LogicSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = Rn ^ Rm
 
         m.d.comb += [
@@ -44,7 +44,7 @@ class XorSpec(LogicSpec):
 
 class OrSpec(LogicSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = Rn | Rm
 
         m.d.comb += [
@@ -55,7 +55,7 @@ class OrSpec(LogicSpec):
 
 class XtrctSpec(LogicSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = ((Rm << 16) & 0xFFFF0000) | ((Rn >> 16) & 0x0000FFFF)
 
         m.d.comb += [
@@ -66,7 +66,7 @@ class XtrctSpec(LogicSpec):
 
 class SwapbSpec(LogicSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = (
             ((Rm & 0x0000FF00) >> 8) | ((Rm & 0x000000FF) << 8) | (Rm & 0xFFFF0000)
         )
@@ -79,7 +79,7 @@ class SwapbSpec(LogicSpec):
 
 class SwapwSpec(LogicSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = ((Rm << 16) & 0xFFFF0000) | ((Rm >> 16) & 0x0000FFFF)
 
         m.d.comb += [
@@ -90,7 +90,7 @@ class SwapwSpec(LogicSpec):
 
 class ExtubSpec(LogicSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = Rm & 0x000000FF
 
         m.d.comb += [
@@ -101,7 +101,7 @@ class ExtubSpec(LogicSpec):
 
 class ExtuwSpec(LogicSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = Rm & 0x0000FFFF
 
         m.d.comb += [
@@ -112,7 +112,7 @@ class ExtuwSpec(LogicSpec):
 
 class ExtsbSpec(LogicSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = Mux((Rm & 0x00000080) == 0, Rm & 0x000000FF, Rm | 0xFFFFFF00)
 
         m.d.comb += [
@@ -123,7 +123,7 @@ class ExtsbSpec(LogicSpec):
 
 class ExtswSpec(LogicSpec):
     def spec(self, m, gate):
-        Rm, Rn = gate.op1, gate.op2
+        Rn, Rm = gate.op1, gate.op2
         gold_result = Mux((Rm & 0x00008000) == 0, Rm & 0x0000FFFF, Rm | 0xFFFF0000)
 
         m.d.comb += [
@@ -134,7 +134,8 @@ class ExtswSpec(LogicSpec):
 
 class TstSpec(LogicSpec):
     def spec(self, m, gate):
-        gold_to = gate.result == 0
+        result = gate.result
+        gold_to = result == 0
 
         m.d.comb += [
             Assume(gate.sel == LogicSel.AND),
