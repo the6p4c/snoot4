@@ -1,9 +1,10 @@
 from amaranth import Module, Mux
+from amaranth.hdl.dsl import Assert
 from amaranth.lib.wiring import Component, In, Out
 import pytest
 
 from snoot4.be.units.logic import Logic, LogicSel
-from snoot4.tests.utils import assertEquivalent
+from snoot4.tests.utils import assertFormal
 
 
 def logic_not(Rm, Rn):
@@ -67,45 +68,31 @@ def logic_extsw(Rm, Rn):
     ],
 )
 def test_logic(sel, result, tmp_path):
-    gold = LogicGold(result)
-    gate = LogicGate(sel)
-
-    assertEquivalent(gold, gate, tmp_path)
+    assertFormal(LogicSpec(sel, result), tmp_path)
 
 
-class LogicGold(Component):
+class LogicSpec(Component):
     op1: In(32)  # Rm
     op2: In(32)  # Rn
-    result: Out(32)  # Rn
 
-    def __init__(self, result):
-        super().__init__()
-
-        self._result = result
-
-    def elaborate(self, platform):
-        m = Module()
-        m.d.comb += self.result.eq(self._result(self.op1, self.op2))
-        return m
-
-
-class LogicGate(Component):
-    op1: In(32)  # Rm
-    op2: In(32)  # Rn
-    result: Out(32)  # Rn
-
-    def __init__(self, sel):
+    def __init__(self, sel, func):
         super().__init__()
 
         self._sel = sel
+        self._func = func
 
     def elaborate(self, platform):
         m = Module()
+
         m.submodules.logic = logic = Logic()
         m.d.comb += [
             logic.sel.eq(self._sel),
             logic.op1.eq(self.op1),
             logic.op2.eq(self.op2),
-            self.result.eq(logic.result),
         ]
+
+        gate_result = logic.result
+        gold_result = self._func(self.op1, self.op2)
+        m.d.comb += Assert(gate_result == gold_result)
+
         return m
