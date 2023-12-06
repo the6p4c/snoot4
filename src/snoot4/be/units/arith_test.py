@@ -2,7 +2,7 @@ import pytest
 
 from amaranth.hdl.dsl import Assert, Assume
 
-from snoot4.be.units.arith import Arith, ArithFlagsSel, ArithSel
+from snoot4.be.units.arith import Arith
 from snoot4.tests.utils import Spec, assertFormal
 
 
@@ -15,7 +15,7 @@ class AddSpec(ArithSpec):
         gold_result = (Rn + Rm) & 0xFFFFFFFF
 
         m.d.comb += [
-            Assume(gate.sel == ArithSel.ADD),
+            Assume(gate.sel == Arith.Sel.ADD),
             Assert(gate.result == gold_result),
         ]
 
@@ -31,8 +31,8 @@ class AddcSpec(ArithSpec):
         gold_to = carry_step1 | carry_step2
 
         m.d.comb += [
-            Assume(gate.sel == ArithSel.ADDC),
-            Assume(gate.flags_sel == ArithFlagsSel.CARRY),
+            Assume(gate.sel == Arith.Sel.ADDC),
+            Assume(gate.flags_sel == Arith.FlagsSel.CARRY),
             Assert(gate.result == gold_result),
             Assert(gate.to == gold_to),
         ]
@@ -49,8 +49,8 @@ class AddvSpec(ArithSpec):
         gold_to = ops_same_sign & result_negative
 
         m.d.comb += [
-            Assume(gate.sel == ArithSel.ADD),
-            Assume(gate.flags_sel == ArithFlagsSel.OVERFLOW),
+            Assume(gate.sel == Arith.Sel.ADD),
+            Assume(gate.flags_sel == Arith.FlagsSel.OVERFLOW),
             Assert(gate.result == gold_result),
             Assert(gate.to == gold_to),
         ]
@@ -62,7 +62,7 @@ class SubSpec(ArithSpec):
         gold_result = (Rn - Rm) & 0xFFFFFFFF
 
         m.d.comb += [
-            Assume(gate.sel == ArithSel.SUB),
+            Assume(gate.sel == Arith.Sel.SUB),
             Assert(gate.result == gold_result),
         ]
 
@@ -78,8 +78,8 @@ class SubcSpec(ArithSpec):
         gold_to = carry_step1 | carry_step2
 
         m.d.comb += [
-            Assume(gate.sel == ArithSel.SUBC),
-            Assume(gate.flags_sel == ArithFlagsSel.CARRY),
+            Assume(gate.sel == Arith.Sel.SUBC),
+            Assume(gate.flags_sel == Arith.FlagsSel.CARRY),
             Assert(gate.result == gold_result),
             Assert(gate.to == gold_to),
         ]
@@ -96,8 +96,8 @@ class SubvSpec(ArithSpec):
         gold_to = ops_different_sign & result_negative
 
         m.d.comb += [
-            Assume(gate.sel == ArithSel.SUB),
-            Assume(gate.flags_sel == ArithFlagsSel.OVERFLOW),
+            Assume(gate.sel == Arith.Sel.SUB),
+            Assume(gate.flags_sel == Arith.FlagsSel.OVERFLOW),
             Assert(gate.result == gold_result),
             Assert(gate.to == gold_to),
         ]
@@ -109,8 +109,8 @@ class CmpEqSpec(ArithSpec):
         gold_to = Rn == Rm
 
         m.d.comb += [
-            Assume(gate.sel == ArithSel.SUB),
-            Assume(gate.flags_sel == ArithFlagsSel.EQ),
+            Assume(gate.sel == Arith.Sel.SUB),
+            Assume(gate.flags_sel == Arith.FlagsSel.EQ),
             Assert(gate.to == gold_to),
         ]
 
@@ -121,8 +121,8 @@ class CmpHsSpec(ArithSpec):
         gold_to = Rn >= Rm
 
         m.d.comb += [
-            Assume(gate.sel == ArithSel.SUB),
-            Assume(gate.flags_sel == ArithFlagsSel.HS),
+            Assume(gate.sel == Arith.Sel.SUB),
+            Assume(gate.flags_sel == Arith.FlagsSel.HS),
             Assert(gate.to == gold_to),
         ]
 
@@ -133,8 +133,8 @@ class CmpGeSpec(ArithSpec):
         gold_to = Rn.as_signed() >= Rm.as_signed()
 
         m.d.comb += [
-            Assume(gate.sel == ArithSel.SUB),
-            Assume(gate.flags_sel == ArithFlagsSel.GE),
+            Assume(gate.sel == Arith.Sel.SUB),
+            Assume(gate.flags_sel == Arith.FlagsSel.GE),
             Assert(gate.to == gold_to),
         ]
 
@@ -145,8 +145,8 @@ class CmpHiSpec(ArithSpec):
         gold_to = Rn > Rm
 
         m.d.comb += [
-            Assume(gate.sel == ArithSel.SUB),
-            Assume(gate.flags_sel == ArithFlagsSel.HI),
+            Assume(gate.sel == Arith.Sel.SUB),
+            Assume(gate.flags_sel == Arith.FlagsSel.HI),
             Assert(gate.to == gold_to),
         ]
 
@@ -157,8 +157,8 @@ class CmpGtSpec(ArithSpec):
         gold_to = Rn.as_signed() > Rm.as_signed()
 
         m.d.comb += [
-            Assume(gate.sel == ArithSel.SUB),
-            Assume(gate.flags_sel == ArithFlagsSel.GT),
+            Assume(gate.sel == Arith.Sel.SUB),
+            Assume(gate.flags_sel == Arith.FlagsSel.GT),
             Assert(gate.to == gold_to),
         ]
 

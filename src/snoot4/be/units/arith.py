@@ -3,40 +3,38 @@ from amaranth.lib import enum
 from amaranth.lib.wiring import Component, In, Out
 
 
-class ArithSel(enum.Enum):
-    # add: 0b00c
-    #  c: add carry
-    ADD = 0b000
-    ADDC = 0b001
-
-    # subtract: 0b01c
-    #  c: subtract carry
-    SUB = 0b010
-    SUBC = 0b011
-
-    # divide init: 0b10s
-    #  ~u/s: ~unsigned/signed
-    DIV0U = 0b100
-    DIV0S = 0b101
-
-    # divide step: 0b11x
-    #  x: don't care
-    DIV1 = 0b110
-
-
-class ArithFlagsSel(enum.Enum):
-    CARRY = 0
-    OVERFLOW = 1
-    EQ = 2
-    HS = 3
-    GE = 4
-    HI = 5
-    GT = 6
-
-
 class Arith(Component):
-    sel: In(ArithSel)
-    flags_sel: In(ArithFlagsSel)
+    class Sel(enum.Enum):
+        # add: 0b00c
+        #  c: add carry
+        ADD = 0b000
+        ADDC = 0b001
+
+        # subtract: 0b01c
+        #  c: subtract carry
+        SUB = 0b010
+        SUBC = 0b011
+
+        # divide init: 0b10s
+        #  ~u/s: ~unsigned/signed
+        DIV0U = 0b100
+        DIV0S = 0b101
+
+        # divide step: 0b11x
+        #  x: don't care
+        DIV1 = 0b110
+
+    class FlagsSel(enum.Enum):
+        CARRY = 0
+        OVERFLOW = 1
+        EQ = 2
+        HS = 3
+        GE = 4
+        HI = 5
+        GT = 6
+
+    sel: In(Sel)
+    flags_sel: In(FlagsSel)
 
     op1: In(32)  # Rn
     op2: In(32)  # Rm
@@ -78,19 +76,19 @@ class Arith(Component):
 
         # === flags generation ===
         with m.Switch(self.flags_sel):
-            with m.Case(ArithFlagsSel.CARRY):
+            with m.Case(Arith.FlagsSel.CARRY):
                 m.d.comb += self.to.eq(result_sign ^ sel_inv)
-            with m.Case(ArithFlagsSel.OVERFLOW):
+            with m.Case(Arith.FlagsSel.OVERFLOW):
                 m.d.comb += self.to.eq(~(add1_sign ^ add2_sign) & result_sign)
-            with m.Case(ArithFlagsSel.EQ):
+            with m.Case(Arith.FlagsSel.EQ):
                 m.d.comb += self.to.eq(self.result == 0)
-            with m.Case(ArithFlagsSel.HS):
+            with m.Case(Arith.FlagsSel.HS):
                 m.d.comb += self.to.eq(result_sign)
-            with m.Case(ArithFlagsSel.GE):
+            with m.Case(Arith.FlagsSel.GE):
                 m.d.comb += self.to.eq(~(result_sign ^ add1_sign ^ add2_sign))
-            with m.Case(ArithFlagsSel.HI):
+            with m.Case(Arith.FlagsSel.HI):
                 m.d.comb += self.to.eq(result_sign & (self.result != 0))
-            with m.Case(ArithFlagsSel.GT):
+            with m.Case(Arith.FlagsSel.GT):
                 m.d.comb += self.to.eq(
                     ~(result_sign ^ add1_sign ^ add2_sign) & (self.result != 0)
                 )

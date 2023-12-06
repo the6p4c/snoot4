@@ -2,7 +2,7 @@ from amaranth import Module, Signal
 from amaranth.lib.wiring import Component, In
 
 from snoot4.be.decoder import Decoder, Op2Sel
-from snoot4.be.units.arith import Arith, ArithFlagsSel, ArithSel
+from snoot4.be.units.arith import Arith
 from snoot4.rf.sim import RegisterFileSim
 
 
@@ -88,8 +88,8 @@ class Backend(Component):
                 m.d.comb += x_op2.eq(dx_imm)
 
         m.d.comb += [
-            arith.sel.eq(ArithSel.ADD),
-            arith.flags_sel.eq(ArithFlagsSel.CARRY),
+            arith.sel.eq(Arith.Sel.ADD),
+            arith.flags_sel.eq(Arith.FlagsSel.CARRY),
             arith.op1.eq(x_op1),
             arith.op2.eq(x_op2),
             arith.ti.eq(0),

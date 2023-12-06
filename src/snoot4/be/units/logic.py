@@ -3,41 +3,39 @@ from amaranth.lib import enum
 from amaranth.lib.wiring import Component, In, Out
 
 
-class LogicSel(enum.Enum):
-    # bitwise: 0b00ii
-    #  ii: index [NOT, AND, XOR, OR]
-    NOT = 0b0000
-    AND = 0b0001
-    XOR = 0b0010
-    OR = 0b0011
-
-    # extract: 0b01xx
-    #  x: don't care
-    XTRCT = 0b0100
-
-    # swap: 0b10xw
-    #  x: don't care
-    #  ~b/w = ~byte/word
-    SWAPB = 0b1000
-    SWAPW = 0b1001
-
-    # extend: 0b11sw
-    #  ~u/s = ~unsigned/signed
-    #  ~b/w = ~byte/word
-    EXTUB = 0b1100
-    EXTUW = 0b1101
-    EXTSB = 0b1110
-    EXTSW = 0b1111
-
-
-class LogicFlagsSel(enum.Enum):
-    ZERO = 0
-    STR = 1
-
-
 class Logic(Component):
-    sel: In(LogicSel)
-    flags_sel: In(LogicFlagsSel)
+    class Sel(enum.Enum):
+        # bitwise: 0b00ii
+        #  ii: index [NOT, AND, XOR, OR]
+        NOT = 0b0000
+        AND = 0b0001
+        XOR = 0b0010
+        OR = 0b0011
+
+        # extract: 0b01xx
+        #  x: don't care
+        XTRCT = 0b0100
+
+        # swap: 0b10xw
+        #  x: don't care
+        #  ~b/w = ~byte/word
+        SWAPB = 0b1000
+        SWAPW = 0b1001
+
+        # extend: 0b11sw
+        #  ~u/s = ~unsigned/signed
+        #  ~b/w = ~byte/word
+        EXTUB = 0b1100
+        EXTUW = 0b1101
+        EXTSB = 0b1110
+        EXTSW = 0b1111
+
+    class FlagsSel(enum.Enum):
+        ZERO = 0
+        STR = 1
+
+    sel: In(Sel)
+    flags_sel: In(FlagsSel)
 
     op1: In(32)  # Rn
     op2: In(32)  # Rm
@@ -113,7 +111,7 @@ class Logic(Component):
             | (r_bitwise[24:32] == 0)
         )
         m.d.comb += self.to.eq(
-            Mux(self.flags_sel == LogicFlagsSel.ZERO, flag_zero, flag_str)
+            Mux(self.flags_sel == Logic.FlagsSel.ZERO, flag_zero, flag_str)
         )
 
         return m
