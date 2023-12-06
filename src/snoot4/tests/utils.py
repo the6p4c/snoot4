@@ -9,8 +9,12 @@ from amaranth.lib.wiring import Component, Out, connect, flipped
 
 
 def Spec(gate_cls):
+    gate = gate_cls()
+    gate._MustUse__used = True
+    gate_signature = gate.signature
+
     class Spec(Component):
-        ports: Out(gate_cls().signature)
+        ports: Out(gate_signature)
         specs = []
 
         def __init_subclass__(cls, **kwargs):
