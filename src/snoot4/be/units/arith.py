@@ -1,4 +1,4 @@
-from amaranth import Array, Cat, Module, Mux, Signal
+from amaranth import Cat, Module, Mux, Signal
 from amaranth.lib import enum
 from amaranth.lib.wiring import Component, In, Out
 

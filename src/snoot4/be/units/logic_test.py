@@ -1,6 +1,7 @@
+import pytest
+
 from amaranth import Mux
 from amaranth.hdl.dsl import Assert, Assume
-import pytest
 
 from snoot4.be.units.logic import Logic, LogicFlagsSel, LogicSel
 from snoot4.tests.utils import Spec, assertFormal

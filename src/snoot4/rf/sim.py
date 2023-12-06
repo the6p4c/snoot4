@@ -1,5 +1,4 @@
 from amaranth import Array, Module, Signal
-from amaranth.hdl.dsl import Assume, Assert
 
 from snoot4.rf import ADDR_R0, RegisterFile
 

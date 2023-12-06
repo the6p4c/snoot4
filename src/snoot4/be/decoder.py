@@ -1,9 +1,10 @@
-from amaranth import Cat, Module
-from amaranth.lib import enum
-from amaranth.lib.wiring import Component, In, Out, Signature
 from contextlib import contextmanager
 import re
 from types import SimpleNamespace
+
+from amaranth import Cat, Module
+from amaranth.lib import enum
+from amaranth.lib.wiring import Component, In, Out
 
 
 class Op2Sel(enum.Enum):
