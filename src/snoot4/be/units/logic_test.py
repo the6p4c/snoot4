@@ -2,7 +2,7 @@ from amaranth import Mux
 from amaranth.hdl.dsl import Assert, Assume
 import pytest
 
-from snoot4.be.units.logic import Logic, LogicSel
+from snoot4.be.units.logic import Logic, LogicFlagsSel, LogicSel
 from snoot4.tests.utils import Spec, assertFormal
 
 
@@ -129,6 +129,34 @@ class ExtswSpec(LogicSpec):
         m.d.comb += [
             Assume(gate.sel == LogicSel.EXTSW),
             Assert(gate.result == gold_result),
+        ]
+
+
+class TstSpec(LogicSpec):
+    def spec(self, m, gate):
+        gold_to = gate.result == 0
+
+        m.d.comb += [
+            Assume(gate.sel == LogicSel.AND),
+            Assume(gate.flags_sel == LogicFlagsSel.ZERO),
+            Assert(gate.to == gold_to),
+        ]
+
+
+class CmpStrSpec(LogicSpec):
+    def spec(self, m, gate):
+        result = gate.result
+        gold_to = (
+            (result[0:8] == 0)
+            | (result[8:16] == 0)
+            | (result[16:24] == 0)
+            | (result[24:32] == 0)
+        )
+
+        m.d.comb += [
+            Assume(gate.sel == LogicSel.XOR),
+            Assume(gate.flags_sel == LogicFlagsSel.STR),
+            Assert(gate.to == gold_to),
         ]
 
 

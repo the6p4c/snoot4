@@ -30,12 +30,20 @@ class LogicSel(enum.Enum):
     EXTSW = 0b1111
 
 
+class LogicFlagsSel(enum.Enum):
+    ZERO = 0
+    STR = 1
+
+
 class Logic(Component):
     sel: In(LogicSel)
+    flags_sel: In(LogicFlagsSel)
 
     op1: In(32)  # Rm
     op2: In(32)  # Rn
     result: Out(32)  # Rn
+
+    to: Out(1)
 
     def elaborate(self, platform):
         m = Module()
@@ -94,6 +102,18 @@ class Logic(Component):
         # === result ===
         m.d.comb += self.result.eq(
             Lut(sel[2:4], [r_bitwise, r_extract, r_swap, r_extend])
+        )
+
+        # === flags ===
+        flag_zero = r_bitwise == 0
+        flag_str = (
+            (r_bitwise[0:8] == 0)
+            | (r_bitwise[8:16] == 0)
+            | (r_bitwise[16:24] == 0)
+            | (r_bitwise[24:32] == 0)
+        )
+        m.d.comb += self.to.eq(
+            Mux(self.flags_sel == LogicFlagsSel.ZERO, flag_zero, flag_str)
         )
 
         return m
