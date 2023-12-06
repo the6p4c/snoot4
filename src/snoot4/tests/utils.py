@@ -8,9 +8,8 @@ from amaranth.back import rtlil
 
 
 def assertFormal(uut, tmp_path):
-    uut_frag = Fragment.get(uut, platform="formal").prepare(
-        ports=[value for _, _, value in uut.signature.flatten(uut)]
-    )
+    uut_ports = [value for _, _, value in uut.signature.flatten(uut)]
+    uut_frag = Fragment.get(uut, platform="formal").prepare(ports=uut_ports)
     uut_rtlil = rtlil.convert_fragment(uut_frag)[0]
 
     config = textwrap.dedent(
