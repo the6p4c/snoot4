@@ -102,6 +102,66 @@ class SubvSpec(ArithSpec):
         ]
 
 
+class CmpEqSpec(ArithSpec):
+    def spec(self, m, gate):
+        Rm, Rn = gate.op1, gate.op2
+        gold_to = Rn == Rm
+
+        m.d.comb += [
+            Assume(gate.sel == ArithSel.SUB),
+            Assume(gate.flags_sel == ArithFlagsSel.EQ),
+            Assert(gate.to == gold_to),
+        ]
+
+
+class CmpHsSpec(ArithSpec):
+    def spec(self, m, gate):
+        Rm, Rn = gate.op1, gate.op2
+        gold_to = Rn >= Rm
+
+        m.d.comb += [
+            Assume(gate.sel == ArithSel.SUB),
+            Assume(gate.flags_sel == ArithFlagsSel.HS),
+            Assert(gate.to == gold_to),
+        ]
+
+
+class CmpGeSpec(ArithSpec):
+    def spec(self, m, gate):
+        Rm, Rn = gate.op1, gate.op2
+        gold_to = Rn.as_signed() >= Rm.as_signed()
+
+        m.d.comb += [
+            Assume(gate.sel == ArithSel.SUB),
+            Assume(gate.flags_sel == ArithFlagsSel.GE),
+            Assert(gate.to == gold_to),
+        ]
+
+
+class CmpHiSpec(ArithSpec):
+    def spec(self, m, gate):
+        Rm, Rn = gate.op1, gate.op2
+        gold_to = Rn > Rm
+
+        m.d.comb += [
+            Assume(gate.sel == ArithSel.SUB),
+            Assume(gate.flags_sel == ArithFlagsSel.HI),
+            Assert(gate.to == gold_to),
+        ]
+
+
+class CmpGtSpec(ArithSpec):
+    def spec(self, m, gate):
+        Rm, Rn = gate.op1, gate.op2
+        gold_to = Rn.as_signed() > Rm.as_signed()
+
+        m.d.comb += [
+            Assume(gate.sel == ArithSel.SUB),
+            Assume(gate.flags_sel == ArithFlagsSel.GT),
+            Assert(gate.to == gold_to),
+        ]
+
+
 @pytest.mark.parametrize("spec", ArithSpec.specs)
 def test_arith(spec, tmp_path):
     assertFormal(spec(), tmp_path)
