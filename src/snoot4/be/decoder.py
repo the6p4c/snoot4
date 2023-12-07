@@ -117,14 +117,14 @@ class Decoder(Component):
         def _with_rd(rd_sel):
             m.d.comb += self.rd_sel.eq(rd_sel)
 
-        # === fixed-point transfer instructions ===
+        # === fixed-point transfer (table 7.3, sh4sw#L172-173) ===
         with _instruction("1110nnnniiiiiiii", "MOV #imm,Rn") as inst:
             _rf(rd=inst.n)
             _use_simm(inst.i)
             _with_op2(Op2Sel.IMM)
             _with_rd(RdSel.OP2)
 
-        # === arithmetic operation instructions ===
+        # === arithmetic operation (table 7.4, sh4sw#L174-175) ===
         with _instruction("0011 nnnn mmmm 1100", "ADD Rm,Rn") as inst:
             _rf(ra=inst.n, rb=inst.m, rd=inst.n)
             _with_op2(Op2Sel.RB)
@@ -138,7 +138,7 @@ class Decoder(Component):
             _use_arith(Arith.Sel.ADD)
             _with_rd(RdSel.ARITH)
 
-        # === logic operation instructions ===
+        # === logic operation (table 7.5, sh4sw#L176) ===
         with _instruction("0010 nnnn mmmm 1001", "AND Rm,Rn") as inst:
             _rf(ra=inst.n, rb=inst.m, rd=inst.n)
             _with_op2(Op2Sel.RB)
@@ -150,5 +150,26 @@ class Decoder(Component):
             _with_op2(Op2Sel.RB)
             _use_logic(Logic.Sel.NOT)
             _with_rd(RdSel.LOGIC)
+
+        # === shift: (table 7.6, sh4sw#L177) ===
+        # TODO
+
+        # === branch: (table 7.7, sh4sw#L178) ===
+        # TODO
+
+        # === system control: (table 7.8, sh4sw#L179-180) ===
+        # TODO
+
+        # === floating-point single-precision: (table 7.9, sh4sw#L181) ===
+        # not implemented
+
+        # === floating-point double-precision (table 7.10, sh4sw#L182) ===
+        # not implemented
+
+        # === floating-point control (table 7.11, sh4sw#L182) ===
+        # not implemented
+
+        # === floating-point graphics acceleration (table 7.12, sh4sw#L183) ===
+        # not implemented
 
         return m
