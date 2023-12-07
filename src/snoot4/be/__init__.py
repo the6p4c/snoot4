@@ -25,13 +25,13 @@ class Backend(Component):
         dx_rb = Signal(4)
         dx_rb_val = Signal(32)
         dx_r0_val = Signal(32)
+        dx_rd_en = Signal()
+        dx_rd = Signal(4)
         dx_imm = Signal(32)
         dx_op2_sel = Signal(Op2Sel)
         dx_arith_sel = Signal(Arith.Sel)
         dx_logic_sel = Signal(Logic.Sel)
         dx_rd_sel = Signal(RdSel)
-        dx_rd_en = Signal()
-        dx_rd = Signal(4)
 
         xm_rd_en = Signal()
         xm_rd = Signal(4)
@@ -56,13 +56,13 @@ class Backend(Component):
         m.d.sync += [
             dx_ra.eq(decoder.ra),
             dx_rb.eq(decoder.rb),
+            dx_rd_en.eq(decoder.rd_en),
+            dx_rd.eq(decoder.rd),
             dx_imm.eq(decoder.imm),
             dx_op2_sel.eq(decoder.op2_sel),
             dx_arith_sel.eq(decoder.arith_sel),
             dx_logic_sel.eq(decoder.logic_sel),
             dx_rd_sel.eq(decoder.rd_sel),
-            dx_rd_en.eq(decoder.rd_en),
-            dx_rd.eq(decoder.rd),
         ]
 
         # === X ===

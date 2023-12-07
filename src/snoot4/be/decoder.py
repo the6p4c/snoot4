@@ -30,15 +30,15 @@ class Decoder(Component):
     ra: Out(4)
     rb_en: Out(1)
     rb: Out(4)
+    rd_en: Out(1)
+    rd: Out(4)
+
     imm: Out(32)
 
     op2_sel: Out(Op2Sel)
     arith_sel: Out(Arith.Sel)
     logic_sel: Out(Logic.Sel)
     rd_sel: Out(RdSel)
-
-    rd_en: Out(1)
-    rd: Out(4)
 
     def elaborate(self, platform):
         m = Module()
@@ -74,17 +74,17 @@ class Decoder(Component):
                 m.d.comb += self.valid.eq(1)
                 yield SimpleNamespace(**fields)
 
-        def _use_ra(ra):
-            m.d.comb += [
-                self.ra_en.eq(1),
-                self.ra.eq(ra),
-            ]
-
-        def _use_rb(rb):
-            m.d.comb += [
-                self.rb_en.eq(1),
-                self.rb.eq(rb),
-            ]
+        def _rf(*, ra=None, rb=None, rd=None):
+            for rn, self_rn_en, self_rn in [
+                (ra, self.ra_en, self.ra),
+                (rb, self.rb_en, self.rb),
+                (rd, self.rd_en, self.rd),
+            ]:
+                if rn is not None:
+                    m.d.comb += [
+                        self_rn_en.eq(1),
+                        self_rn.eq(rn),
+                    ]
 
         def _use_simm(imm):
             sign_bits = imm[-1].replicate(32 - imm.shape().width)
@@ -102,45 +102,33 @@ class Decoder(Component):
         def _with_rd(rd_sel):
             m.d.comb += self.rd_sel.eq(rd_sel)
 
-        def _use_rd(rd):
-            m.d.comb += [
-                self.rd_en.eq(1),
-                self.rd.eq(rd),
-            ]
-
         # ADD Rm, Rn
         with _instruction("0011 nnnn mmmm 1100") as inst:
-            _use_ra(inst.n)
-            _use_rb(inst.m)
+            _rf(ra=inst.n, rb=inst.m, rd=inst.n)
             _with_op2(Op2Sel.RB)
             _use_arith(Arith.Sel.ADD)
             _with_rd(RdSel.ARITH)
-            _use_rd(inst.n)
 
         # ADD #imm,Rn
         with _instruction("0111 nnnn iiii iiii") as inst:
-            _use_ra(inst.n)
+            _rf(ra=inst.n, rd=inst.n)
             _use_simm(inst.i)
             _with_op2(Op2Sel.IMM)
             _use_arith(Arith.Sel.ADD)
             _with_rd(RdSel.ARITH)
-            _use_rd(inst.n)
 
         # AND Rm,Rn
         with _instruction("0010 nnnn mmmm 1001") as inst:
-            _use_ra(inst.n)
-            _use_rb(inst.m)
+            _rf(ra=inst.n, rb=inst.m, rd=inst.n)
             _with_op2(Op2Sel.RB)
             _use_logic(Logic.Sel.AND)
             _with_rd(RdSel.LOGIC)
-            _use_rd(inst.n)
 
         # NOT Rm,Rn
         with _instruction("0110 nnnn mmmm 0111") as inst:
-            _use_rb(inst.m)
+            _rf(rb=inst.m, rd=inst.n)
             _with_op2(Op2Sel.RB)
             _use_logic(Logic.Sel.NOT)
             _with_rd(RdSel.LOGIC)
-            _use_rd(inst.n)
 
         return m
