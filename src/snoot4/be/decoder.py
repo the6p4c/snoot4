@@ -19,6 +19,7 @@ class Op2Sel(enum.Enum):
 class RdSel(enum.Enum):
     ARITH = 0
     LOGIC = 1
+    OP2 = 2
 
 
 class Decoder(Component):
@@ -101,6 +102,13 @@ class Decoder(Component):
 
         def _with_rd(rd_sel):
             m.d.comb += self.rd_sel.eq(rd_sel)
+
+        # MOV #imm,Rn
+        with _instruction("1110nnnniiiiiiii") as inst:
+            _rf(rd=inst.n)
+            _use_simm(inst.i)
+            _with_op2(Op2Sel.IMM)
+            _with_rd(RdSel.OP2)
 
         # ADD Rm, Rn
         with _instruction("0011 nnnn mmmm 1100") as inst:

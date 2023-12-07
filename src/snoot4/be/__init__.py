@@ -117,6 +117,8 @@ class Backend(Component):
                 m.d.comb += x_rd_val.eq(arith.result)
             with m.Case(RdSel.LOGIC):
                 m.d.comb += x_rd_val.eq(logic.result)
+            with m.Case(RdSel.OP2):
+                m.d.comb += x_rd_val.eq(x_op2)
 
         m.d.sync += [
             xm_rd_val.eq(x_rd_val),
@@ -148,31 +150,23 @@ if __name__ == "__main__":
     sim = Simulator(uut)
 
     def proc():
-        # NOP    0000 0000 0000 1001
-        yield uut.instruction.eq(0b0000_0000_0000_1001)
+        # 0:      e0 00           mov     #0,r0
+        yield uut.instruction.eq(0xE000)
         yield
-        # ADD #imm,Rn   Rn + imm -> Rn    0111 nnnn iiii iiii
-        # ADD #1,R2     R2 + 1   -> R2    0111 0100 0000 0001
-        yield uut.instruction.eq(0b0111_0010_0000_0001)
+        # 2:      e1 01           mov     #1,r1
+        yield uut.instruction.eq(0xE101)
         yield
-        # ADD #imm,Rn   Rn + imm -> Rn    0111 nnnn iiii iiii
-        # ADD #3,R4     R4 + 3   -> R4    0111 0100 0000 0011
-        yield uut.instruction.eq(0b0111_0100_0000_0011)
-        yield
-        # ADD Rm,Rn   Rn + Rm -> Rn    0011 nnnn mmmm 1100
-        # ADD R2,R4   R4 + R2 -> R4    0011 0100 0010 1100
-        yield uut.instruction.eq(0b0011_0100_0010_1100)
-        yield
-        # NOT Rm,Rn   ~Rm -> Rn    0110 nnnn mmmm 0111
-        # NOT R4,R8   ~R4 -> R8    0110 1000 0100 0111
-        yield uut.instruction.eq(0b0110_1000_0100_0111)
-        yield
-        # AND Rm,Rn   Rn & Rm -> Rn    0010 nnnn mmmm 1001
-        # AND R2,R8   R8 & R2 -> R8    0010 1000 0010 1001
-        yield uut.instruction.eq(0b0010_1000_0010_1001)
-        yield
-        # NOP    0000 0000 0000 1001
-        yield uut.instruction.eq(0b0000_0000_0000_1001)
+
+        for _ in range(8):
+            # 4:      31 0c           add     r0,r1
+            yield uut.instruction.eq(0x310C)
+            yield
+            # 6:      30 1c           add     r1,r0
+            yield uut.instruction.eq(0x301C)
+            yield
+
+        # 0:      00 09           nop
+        yield uut.instruction.eq(0x0009)
         yield
 
         for _ in range(16):
