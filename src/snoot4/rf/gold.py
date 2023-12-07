@@ -10,12 +10,12 @@ class RegisterFileGold(RegisterFile):
 
         bank0 = [Signal(32, name=f"R{n}_BANK0") for n in range(8)]
         bank1 = [Signal(32, name=f"R{n}_BANK1") for n in range(8)]
-        high = [Signal(32, name=f"R{n+16}") for n in range(8)]
+        high = [Signal(32, name=f"R{n+8}") for n in range(8)]
         regs = Array(bank0 + bank1 + high)
 
         bank0 = [Signal(32, name=f"R{n}_BANK0_next") for n in range(8)]
         bank1 = [Signal(32, name=f"R{n}_BANK1_next") for n in range(8)]
-        high = [Signal(32, name=f"R{n+16}_next") for n in range(8)]
+        high = [Signal(32, name=f"R{n+8}_next") for n in range(8)]
         regs_next = Array(bank0 + bank1 + high)
 
         def _reg(bank, addr):

@@ -9,7 +9,7 @@ class RegisterFileSim(RegisterFile):
 
         bank0 = Array([Signal(32, name=f"R{n}_BANK0") for n in range(8)])
         bank1 = Array([Signal(32, name=f"R{n}_BANK1") for n in range(8)])
-        high = Array([Signal(32, name=f"R{n+16}") for n in range(8)])
+        high = Array([Signal(32, name=f"R{n+8}") for n in range(8)])
 
         def _read(bank, addr):
             addr_low, addr_is_high = addr[0:3], addr >= 8
