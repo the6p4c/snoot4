@@ -27,6 +27,8 @@ class Backend(Component):
         dx_r0_val = Signal(32)
         dx_imm = Signal(32)
         dx_op2_sel = Signal(Op2Sel)
+        dx_arith_sel = Signal(Arith.Sel)
+        dx_logic_sel = Signal(Logic.Sel)
         dx_rd_sel = Signal(RdSel)
         dx_rd_en = Signal()
         dx_rd = Signal(4)
@@ -56,6 +58,8 @@ class Backend(Component):
             dx_rb.eq(decoder.rb),
             dx_imm.eq(decoder.imm),
             dx_op2_sel.eq(decoder.op2_sel),
+            dx_arith_sel.eq(decoder.arith_sel),
+            dx_logic_sel.eq(decoder.logic_sel),
             dx_rd_sel.eq(decoder.rd_sel),
             dx_rd_en.eq(decoder.rd_en),
             dx_rd.eq(decoder.rd),
@@ -93,7 +97,7 @@ class Backend(Component):
                 m.d.comb += x_op2.eq(dx_imm)
 
         m.d.comb += [
-            arith.sel.eq(Arith.Sel.ADD),
+            arith.sel.eq(dx_arith_sel),
             arith.flags_sel.eq(Arith.FlagsSel.CARRY),
             arith.op1.eq(x_op1),
             arith.op2.eq(x_op2),
@@ -101,7 +105,7 @@ class Backend(Component):
         ]
 
         m.d.comb += [
-            logic.sel.eq(Logic.Sel.NOT),
+            logic.sel.eq(dx_logic_sel),
             logic.flags_sel.eq(Logic.FlagsSel.ZERO),
             logic.op1.eq(x_op1),
             logic.op2.eq(x_op2),
@@ -162,6 +166,10 @@ if __name__ == "__main__":
         # NOT Rm,Rn   ~Rm -> Rn    0110 nnnn mmmm 0111
         # NOT R4,R8   ~R4 -> R8    0110 1000 0100 0111
         yield uut.instruction.eq(0b0110_1000_0100_0111)
+        yield
+        # AND Rm,Rn   Rn & Rm -> Rn    0010 nnnn mmmm 1001
+        # AND R2,R8   R8 & R2 -> R8    0010 1000 0010 1001
+        yield uut.instruction.eq(0b0010_1000_0010_1001)
         yield
         # NOP    0000 0000 0000 1001
         yield uut.instruction.eq(0b0000_0000_0000_1001)
