@@ -1,8 +1,9 @@
 from amaranth import Module, Signal
 from amaranth.lib.wiring import Component, In
 
-from snoot4.be.decoder import Decoder, Op2Sel
+from snoot4.be.decoder import Decoder, Op2Sel, RdSel
 from snoot4.be.units.arith import Arith
+from snoot4.be.units.logic import Logic
 from snoot4.rf.sim import RegisterFileSim
 
 
@@ -14,7 +15,9 @@ class Backend(Component):
 
         m.submodules.rf = rf = RegisterFileSim()
         m.submodules.decoder = decoder = Decoder()
+
         m.submodules.arith = arith = Arith()
+        m.submodules.logic = logic = Logic()
 
         # === pipeline registers ===
         dx_ra = Signal(4)
@@ -24,6 +27,7 @@ class Backend(Component):
         dx_r0_val = Signal(32)
         dx_imm = Signal(32)
         dx_op2_sel = Signal(Op2Sel)
+        dx_rd_sel = Signal(RdSel)
         dx_rd_en = Signal()
         dx_rd = Signal(4)
 
@@ -52,6 +56,7 @@ class Backend(Component):
             dx_rb.eq(decoder.rb),
             dx_imm.eq(decoder.imm),
             dx_op2_sel.eq(decoder.op2_sel),
+            dx_rd_sel.eq(decoder.rd_sel),
             dx_rd_en.eq(decoder.rd_en),
             dx_rd.eq(decoder.rd),
         ]
@@ -95,8 +100,22 @@ class Backend(Component):
             arith.ti.eq(0),
         ]
 
+        m.d.comb += [
+            logic.sel.eq(Logic.Sel.NOT),
+            logic.flags_sel.eq(Logic.FlagsSel.ZERO),
+            logic.op1.eq(x_op1),
+            logic.op2.eq(x_op2),
+        ]
+
+        x_rd_val = Signal(32)
+        with m.Switch(dx_rd_sel):
+            with m.Case(RdSel.ARITH):
+                m.d.comb += x_rd_val.eq(arith.result)
+            with m.Case(RdSel.LOGIC):
+                m.d.comb += x_rd_val.eq(logic.result)
+
         m.d.sync += [
-            xm_rd_val.eq(arith.result),
+            xm_rd_val.eq(x_rd_val),
             xm_rd_en.eq(dx_rd_en),
             xm_rd.eq(dx_rd),
         ]
@@ -139,6 +158,10 @@ if __name__ == "__main__":
         # ADD Rm,Rn   Rn + Rm -> Rn    0011 nnnn mmmm 1100
         # ADD R2,R4   R4 + R2 -> R4    0011 0100 0010 1100
         yield uut.instruction.eq(0b0011_0100_0010_1100)
+        yield
+        # NOT Rm,Rn   ~Rm -> Rn    0110 nnnn mmmm 0111
+        # NOT R4,R8   ~R4 -> R8    0110 1000 0100 0111
+        yield uut.instruction.eq(0b0110_1000_0100_0111)
         yield
         # NOP    0000 0000 0000 1001
         yield uut.instruction.eq(0b0000_0000_0000_1001)

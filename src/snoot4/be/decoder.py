@@ -13,6 +13,11 @@ class Op2Sel(enum.Enum):
     IMM = 0b11
 
 
+class RdSel(enum.Enum):
+    ARITH = 0
+    LOGIC = 1
+
+
 class Decoder(Component):
     instruction: In(16)
 
@@ -25,6 +30,7 @@ class Decoder(Component):
     imm: Out(32)
 
     op2_sel: Out(Op2Sel)
+    rd_sel: Out(RdSel)
 
     rd_en: Out(1)
     rd: Out(4)
@@ -82,6 +88,9 @@ class Decoder(Component):
         def _with_op2(op2_sel):
             m.d.comb += self.op2_sel.eq(op2_sel)
 
+        def _with_rd(rd_sel):
+            m.d.comb += self.rd_sel.eq(rd_sel)
+
         def _use_rd(rd):
             m.d.comb += [
                 self.rd_en.eq(1),
@@ -94,6 +103,7 @@ class Decoder(Component):
             _use_rb(inst.m)
             _with_op2(Op2Sel.RB)
             _use_rd(inst.n)
+            _with_rd(RdSel.ARITH)
 
         # ADD #imm,Rn
         with _instruction("0111 nnnn iiii iiii") as inst:
@@ -101,5 +111,13 @@ class Decoder(Component):
             _use_simm(inst.i)
             _with_op2(Op2Sel.IMM)
             _use_rd(inst.n)
+            _with_rd(RdSel.ARITH)
+
+        # NOT Rm,Rn
+        with _instruction("0110 nnnn mmmm 0111") as inst:
+            _use_rb(inst.m)
+            _with_op2(Op2Sel.RB)
+            _use_rd(inst.n)
+            _with_rd(RdSel.LOGIC)
 
         return m
