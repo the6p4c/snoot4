@@ -2,7 +2,7 @@ import pytest
 
 from amaranth.hdl.dsl import Assert, Assume
 
-from snoot4.be.cmp import Cmp
+from snoot4.be.units import Cmp
 from snoot4.tests.utils import Spec, assertFormal
 
 

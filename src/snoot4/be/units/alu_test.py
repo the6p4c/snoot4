@@ -3,7 +3,7 @@ import pytest
 
 from amaranth.hdl.dsl import Assert, Assume
 
-from snoot4.be.alu import Alu
+from snoot4.be.units import Alu
 from snoot4.tests.utils import Spec, assertFormal
 
 
